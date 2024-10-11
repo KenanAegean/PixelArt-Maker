@@ -28,10 +28,8 @@ your-repo-name/
 ### 1. Clone the Repository
 First, clone the repository to your local machine:
 ```bash
-git clone https://github.com/KenanAegean/PixelArt-Maker
-.git
+git clone https://github.com/KenanAegean/PixelArt-Maker.git
 cd PixelArt-Maker
-
 ```
 
 ### 2. Install Dependencies

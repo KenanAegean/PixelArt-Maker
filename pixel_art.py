@@ -35,12 +35,12 @@ def detect_and_crop_face(image_path):
     return cropped_face
 
 # Function to resize the cropped face to a smaller grid
-def resize_to_square(image, size=38):
+def resize_to_square(image, size=48):
     resized_face = cv2.resize(image, (size, size), interpolation=cv2.INTER_AREA)
     return resized_face
 
 # Function to reduce the color palette using KMeans clustering
-def quantize_image(image, num_colors=16):
+def quantize_image(image, num_colors=10):
     pixels = image.reshape(-1, 3)
     kmeans = KMeans(n_clusters=num_colors, random_state=42).fit(pixels)
     new_colors = kmeans.cluster_centers_.astype(int)
@@ -57,7 +57,7 @@ def most_frequent_color(square):
     return most_common_color
 
 # Function to create pixel art by applying dominant color to mini-squares
-def create_pixel_art(image, square_size=2):
+def create_pixel_art(image, square_size=1):
     height, width, _ = image.shape
     pixel_art = np.zeros_like(image)
 
@@ -70,28 +70,27 @@ def create_pixel_art(image, square_size=2):
     return pixel_art
 
 # Function to enhance edges and smooth color transitions
-def enhance_edges_and_smooth(image):
+def enhance_edges_sharper(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-    edges = cv2.Canny(blurred, threshold1=80, threshold2=150)
+    blurred = cv2.GaussianBlur(gray, (1, 1), 0)  # Less blur for sharper edges
+    edges = cv2.Canny(blurred, threshold1=50, threshold2=120)  # Sharper edges
     edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
     enhanced_image = cv2.addWeighted(image, 0.7, edges_colored, 0.3, 0)
-    smoothed_image = cv2.GaussianBlur(enhanced_image, (3, 3), 0)
+    smoothed_image = cv2.GaussianBlur(enhanced_image, (1, 1), 0)  # Slight smoothing
     return smoothed_image
 
-# Function to process the image and create pixel art with edge enhancement
-def process_image(image_path, square_size=2, num_colors=16):
+# Final function to process the image with 48x48 size and a maximum of 10 colors
+def process_image_with_10_colors(image_path, square_size=48):
     cropped_face = detect_and_crop_face(image_path)
     if cropped_face is not None:
-        # Enhance edges and smooth transitions
-        enhanced_smoothed_face = enhance_edges_and_smooth(cropped_face)
-        # Resize the face
-        resized_face = resize_to_square(enhanced_smoothed_face)
-        # Apply color quantization
-        quantized_face = quantize_image(resized_face, num_colors)
-        # Create pixel art
-        pixel_art = create_pixel_art(quantized_face, square_size=square_size)
-        # Convert to RGB for displaying
+        # Enhance edges with sharper detection
+        enhanced_face = enhance_edges_sharper(cropped_face)
+        resized_face = resize_to_square(enhanced_face, size=48)  # Resize to exactly 48x48
+        # Apply default KMeans color quantization with 10 colors
+        quantized_face = quantize_image(resized_face, num_colors=10)
+        # Create pixel art with square size of 1 (since we resized to 48x48)
+        pixel_art = create_pixel_art(quantized_face, square_size=1)  # Each block should represent 1 pixel of 48x48
+        # Convert to RGB for display
         pixel_art_rgb = cv2.cvtColor(pixel_art, cv2.COLOR_BGR2RGB)
         # Display the result
         plt.imshow(pixel_art_rgb)
@@ -100,7 +99,5 @@ def process_image(image_path, square_size=2, num_colors=16):
     else:
         print("Face not detected.")
 
-# Example usage
-if __name__ == "__main__":
-    image_path = 'your_image_path_here.jpg'
-    process_image(image_path, square_size=2, num_colors=16)
+# Example usage:
+# process_image_with_10_colors('your_image_path_here.jpg')
