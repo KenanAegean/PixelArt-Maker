@@ -1,13 +1,15 @@
 
 # Pixel Art Generator
 
-This project is a Python-based pixel art generator that processes an input image (preferably of a face), applies edge enhancement, reduces the color palette using K-means clustering, and creates a pixelated version of the image.
+This project is a Python-based pixel art generator that processes an input image (preferably of a face), removes the background, and creates a pixelated version of the image. The final output is resized to 512x512 pixels with a transparent background.
 
 ## Features
+- **Background Removal**: Automatically removes the background using the rembg library.
 - **Face Detection**: Automatically detects the face in the image using OpenCV's Haar Cascade classifier.
-- **Edge Enhancement**: Highlights edges to improve visual clarity in the pixel art.
-- **Color Quantization**: Reduces the image color palette to a specified number of colors using K-means clustering.
 - **Pixelation**: Divides the image into squares and fills each square with the most frequent color, creating a pixelated effect.
+- **Transparent Background**: The final pixel art retains a transparent background.
+- **Auto File Renaming**: If the output file already exists, a number is appended to avoid overwriting existing files.
+- **Final Output Resized**: The final output image is resized to 512x512 pixels.
 
 ## Project Structure
 
@@ -18,8 +20,9 @@ your-repo-name/
 ├── requirements.txt       # Python dependencies
 ├── README.md              # Documentation for the project
 ├── images/                # Folder to store input and output images (optional)
-│   ├── input_image.jpg    # Example input image (optional)
-│   └── output_image.png   # Example pixel art output (optional)
+│   └── input_image.png    # Example input image (optional)
+├── output/                # Folder to store input and output images (optional)
+│   └── pixel_art.png   # Example pixel art output (optional)
 └── .gitignore             # Ignore unnecessary files in the repo (optional)
 ```
 
@@ -42,7 +45,8 @@ pip install -r requirements.txt
 This will install the following packages:
 - `opencv-python`: For image processing and face detection.
 - `matplotlib`: For displaying images.
-- `scikit-learn`: For color quantization using K-means clustering.
+- `rembg`: For background removal.
+- `Pillow`: For saving images.
 
 ## Usage
 
@@ -66,61 +70,48 @@ python pixel_art.py
 
 This will display the generated pixel art on your screen.
 
-### 4. Adjust Parameters
-You can adjust the following parameters in the `process_image()` function to customize the pixel art:
-- **`square_size`**: Controls how large each "pixel" block is. Larger numbers create larger pixel blocks.
-- **`num_colors`**: Controls how many distinct colors the pixel art will have. A lower number of colors creates a more simplified, classic pixel art style.
-
-For example:
-```python
-process_image(image_path, square_size=4, num_colors=10)
-```
+### 4. Saving the Output
+The final output is automatically saved as a PNG with a transparent background, and it is resized to 512x512 pixels. If a file with the same name exists, the script appends a number to avoid overwriting.
 
 ### Example Usage
 
 ```python
 # Example of using the process_image function
 image_path = 'images/input_image.jpg'
-process_image(image_path, square_size=2, num_colors=16)
+output_path = 'output/pixel_art.png'
+process_image_with_bg_removal(image_path, output_path)
 ```
 
 ### Output
-The pixel art image will be displayed on your screen, and you can also modify the code to save the image using OpenCV's `imwrite()` function if desired.
+The pixel art image will be displayed on your screen, and saved in the `output/` folder. If the file already exists, a new file with a number (e.g., `pixel_art_1.png`) will be created.
 
 ## Example
 Before running the script, you can place an image like this in the `images/` folder:
 
 **Input:**
 
-![Input Image](images/input_image.jpg)
+![Input Image](images/input_image2.jpg)
 
 **Output:**
 
 After running the script, you will get pixel art output similar to this:
 
-![Output Image](images/output_image.png)
+![Output Image](output/pixel_art_3.png)
 
 ## How It Works
 
-1. **Face Detection**: The script detects a face in the input image using OpenCV's Haar Cascade classifier.
-2. **Edge Enhancement**: It enhances the edges of the face to make features like eyes, nose, and mouth more pronounced in the pixel art.
-3. **Color Quantization**: The color palette is reduced to a set number of colors (e.g., 16 colors) using K-means clustering to simulate the color limitations of classic pixel art.
-4. **Pixelation**: The image is divided into square blocks, and the most frequent color in each block is applied, creating the pixelated look.
+1. **Background Removal**: The script uses the `rembg` library to remove the background from the input image.
+2. **Face Detection**: The script detects a face in the input image using OpenCV's Haar Cascade classifier.
+3. **Pixelation**: The image is divided into square blocks, and the most frequent color in each block is applied, creating the pixelated look.
+4. **Final Resizing**: The output image is resized to 512x512 pixels and saved with a transparent background.
 
 ## Customization
 
-### Edge Enhancement
-To adjust the edge enhancement settings, you can modify the thresholds used in the Canny edge detection:
-```python
-edges = cv2.Canny(blurred, threshold1=80, threshold2=150)
-```
-Lower values will make the edges more sensitive, and higher values will make them more selective.
+### Adjusting Pixelation
+You can modify the square size used in the pixelation by adjusting the `square_size` parameter in the script.
 
-### Saving the Output
-If you want to save the pixel art to a file instead of displaying it, you can modify the `process_image()` function:
-```python
-cv2.imwrite('images/output_image.png', pixel_art)
-```
+### Saving the Output with Transparency
+The output is automatically saved as a PNG with a transparent background. If needed, you can modify the `output_path` variable in the script to specify a different output location.
 
 ## License
 This project is licensed under the MIT License. You are free to use, modify, and distribute it.
