@@ -96,7 +96,7 @@ Before running the script, you can place an image like this in the `images/` fol
 
 After running the script, you will get pixel art output similar to this:
 
-![Output Image](output/pixel_art_3.png)
+![Output Image](output/pixel_art_12.png)
 
 ## How It Works
 
