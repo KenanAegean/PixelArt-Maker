@@ -113,5 +113,3 @@ You can modify the square size used in the pixelation by adjusting the `square_s
 ### Saving the Output with Transparency
 The output is automatically saved as a PNG with a transparent background. If needed, you can modify the `output_path` variable in the script to specify a different output location.
 
-## License
-This project is licensed under the MIT License. You are free to use, modify, and distribute it.
