@@ -117,25 +117,3 @@ You can modify the square size used in the pixelation by adjusting the `square_s
 ### Saving the Output with Transparency
 The output is automatically saved as a PNG with a transparent background. If needed, you can modify the `output_path` variable in the script to specify a different output location.
 
-
-
-## Key Features Added:
-- **Background removal:** Uses the rembg library to remove the background of an image.
-- **Face detection:** Crops the face from the image using OpenCV.
-- **Pixel art generation:** Creates pixelated art by resizing the image and applying color quantization.
-- **Customization options:** Allows users to specify the number of colors and the pixel size for the pixel art.
-
-## GUI Functionality:
-The GUI is built using Tkinter and provides a simple interface for generating pixel art from images.
-
-### Main Components:
-1. **Select Image:** A button to choose an image file (supports .png, .jpg, .jpeg formats). Once selected, the image is displayed in the left section of the window.
-2. **Input Fields:**
-   - **Number of Colors:** A text box where the user can enter how many colors the pixel art should be limited to (default is 8).
-   - **Pixel Size:** A text box for entering the size of each pixel in the generated pixel art (e.g., 32x32, 48x48, default is 48).
-3. **Generate Button:** Once the image and settings are selected, clicking the 'Generate' button triggers the pixel art generation process. The result is displayed on the right side.
-4. **Image Preview:** The selected image and the generated pixel art are displayed side by side in the GUI for easy comparison.
-
-### Saving the Pixel Art:
-- The generated pixel art is automatically saved as a 512x512 PNG file in the output folder, with the filename `pixel_art.png` (or numbered if a file already exists).
-
