@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from collections import Counter
 from rembg import remove
 from PIL import Image, ImageTk
 import io
@@ -14,6 +12,32 @@ from tkinter import messagebox
 # Global variable to store the image path
 image_path = None
 
+# Function to detect and crop the head, ensuring the head takes up a max of 60% of the image
+def detect_and_crop_head(image):
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+    if len(faces) == 0:
+        print("No head detected.")
+        return None
+
+    (x, y, w, h) = faces[0]
+    padding = int(0.2 * w)  # Adjust padding to center the head
+    x, y = max(0, x - padding), max(0, y - padding)
+    w, h = w + 2 * padding, h + 2 * padding
+
+    # Calculate maximum size of the cropped head (60% of the image)
+    max_width, max_height = int(image.shape[1] * 0.6), int(image.shape[0] * 0.6)
+    cropped_width, cropped_height = min(w, max_width), min(h, max_height)
+
+    # Ensure head is centered in the image
+    center_x, center_y = x + cropped_width // 2, y + cropped_height // 2
+    crop_x, crop_y = max(0, center_x - cropped_width // 2), max(0, center_y - cropped_height // 2)
+
+    cropped_head = image[crop_y:crop_y + cropped_height, crop_x:crop_x + cropped_width]
+    return cropped_head
+
 # Function to remove the background using rembg
 def remove_background(image_path):
     with open(image_path, 'rb') as input_file:
@@ -22,58 +46,19 @@ def remove_background(image_path):
     img_np = np.array(Image.open(io.BytesIO(output_data)))
     return img_np
 
-# Function to detect and crop the face
-def detect_and_crop_face(image):
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    gray = cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-
-    if len(faces) == 0:
-        print("No face detected.")
-        return None
-
-    (x, y, w, h) = faces[0]
-    padding = int(0.3 * w)
-    x, y = max(0, x-padding), max(0, y-padding)
-    w, h = w + 2*padding, h + 2*padding
-
-    cropped_face = image[y:y+h, x:x+w]
-    return cropped_face
-
-# Function to resize the cropped face
+# Function to resize the cropped head
 def resize_to_square(image, size):
-    resized_face = cv2.resize(image, (size, size), interpolation=cv2.INTER_AREA)
-    return resized_face
+    resized_image = cv2.resize(image, (size, size), interpolation=cv2.INTER_AREA)
+    return resized_image
 
-# Function to reduce the color palette using KMeans clustering
+# Improved function to reduce the color palette using KMeans clustering
 def quantize_image(image, num_colors):
-    pixels = image.reshape(-1, 4)
+    pixels = image.reshape(-1, 3)  # Use 3 channels (RGB) for color quantization
     kmeans = KMeans(n_clusters=num_colors, random_state=42).fit(pixels)
     new_colors = kmeans.cluster_centers_.astype(int)
     labels = kmeans.labels_
     quantized_image = new_colors[labels].reshape(image.shape).astype(np.uint8)
     return quantized_image
-
-# Function to find the most frequent color in a given square
-def most_frequent_color(square):
-    pixels = square.reshape(-1, square.shape[2])
-    pixels = [tuple(pixel) for pixel in pixels]
-    color_counter = Counter(pixels)
-    most_common_color = color_counter.most_common(1)[0][0]
-    return most_common_color
-
-# Function to create pixel art
-def create_pixel_art(image, square_size=1):
-    height, width, _ = image.shape
-    pixel_art = np.zeros_like(image)
-
-    for y in range(0, height, square_size):
-        for x in range(0, width, square_size):
-            square = image[y:y+square_size, x:x+square_size]
-            dominant_color = most_frequent_color(square)
-            pixel_art[y:y+square_size, x:x+square_size] = dominant_color
-
-    return pixel_art
 
 # Function to display the processed image in the GUI
 def display_image(image_array, label):
@@ -85,7 +70,6 @@ def display_image(image_array, label):
 
 # Function to save the output image and add a number if file exists
 def save_image(output_path, image_data):
-    # Check if the file already exists, and if so, append a number to the filename
     base, ext = os.path.splitext(output_path)
     counter = 1
     new_output_path = output_path
@@ -97,36 +81,35 @@ def save_image(output_path, image_data):
     resized_image = cv2.resize(image_data, (512, 512), interpolation=cv2.INTER_AREA)
     Image.fromarray(resized_image).save(new_output_path, format='PNG')
     print(f"Output saved to {new_output_path}")
-    return new_output_path  # Return the path of the saved image
+    return new_output_path
 
-# Function to process the image and generate pixel art
+# Function to process the image, remove background, and generate pixel art
 def process_image(image_path, output_path, num_colors, pixel_size):
-    # Step 1: Remove background
-    image_no_bg = remove_background(image_path)
+    # Step 1: Detect and crop the head
+    original_image = cv2.imread(image_path)
+    cropped_head = detect_and_crop_head(original_image)
 
-    # Step 2: Detect and crop face
-    cropped_face = detect_and_crop_face(image_no_bg)
-    if cropped_face is not None:
-        # Step 3: Resize face
-        resized_face = resize_to_square(cropped_face, size=pixel_size)
+    if cropped_head is not None:
+        display_image(cropped_head, selected_image_label)  # Show cropped head in GUI
+        
+        # Step 2: Remove background
+        image_no_bg = remove_background(image_path)
+
+        # Step 3: Resize head
+        resized_image = resize_to_square(cropped_head, pixel_size)
 
         # Step 4: Quantize colors
-        quantized_face = quantize_image(resized_face, num_colors)
+        quantized_image = quantize_image(resized_image, num_colors)
 
-        # Step 5: Create pixel art
-        pixel_art = create_pixel_art(quantized_face, square_size=1)
-
-        # Step 6: Save the output
-        saved_image_path = save_image(output_path, pixel_art)
-
-        # Step 7: Load and display the saved image (512x512)
+        # Step 5: Save the output and show in generated image section
+        saved_image_path = save_image(output_path, quantized_image)
         saved_image = Image.open(saved_image_path)
-        saved_image_resized = saved_image.resize((200, 200), Image.Resampling.LANCZOS)  # Resize for display
+        saved_image_resized = saved_image.resize((200, 200), Image.Resampling.LANCZOS)
         img_tk = ImageTk.PhotoImage(saved_image_resized)
         generated_image_label.config(image=img_tk)
         generated_image_label.image = img_tk  # Keep reference to avoid garbage collection
     else:
-        messagebox.showerror("Error", "No face detected in the image!")
+        messagebox.showerror("Error", "No head detected in the image!")
 
 # Tkinter GUI Setup
 # Function to handle image selection
@@ -136,14 +119,14 @@ def open_file():
     if file_path:
         image_path = file_path  # Save the selected image path
         img = Image.open(file_path)
-        img = img.resize((200, 200), Image.Resampling.LANCZOS)  # Use LANCZOS for resizing in newer Pillow versions
+        img = img.resize((200, 200), Image.Resampling.LANCZOS)
         img_tk = ImageTk.PhotoImage(img)
         selected_image_label.config(image=img_tk)
-        selected_image_label.image = img_tk  # Save reference to avoid garbage collection
-        
+        selected_image_label.image = img_tk
+
         # Get the file name and update the button text
         file_name = os.path.basename(file_path)
-        select_image_button.config(text=file_name)  # Update the button text with the selected image's filename
+        select_image_button.config(text=file_name)
     else:
         messagebox.showerror("Error", "No image selected!")
 
@@ -168,7 +151,7 @@ def generate_art():
 # Initialize the root window
 root = tk.Tk()
 root.title("PixelArt Generator")
-root.geometry("650x750")
+root.geometry("900x600")
 root.config(bg="#444")
 
 # Title label

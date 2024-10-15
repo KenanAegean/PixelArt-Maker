@@ -86,17 +86,21 @@ process_image_with_bg_removal(image_path, output_path)
 The pixel art image will be displayed on your screen, and saved in the `output/` folder. If the file already exists, a new file with a number (e.g., `pixel_art_1.png`) will be created.
 
 ## Example
+**GUI:**
+
+![GUI Image](for_readme/picture_of_gui.png)
+
 Before running the script, you can place an image like this in the `images/` folder:
 
 **Input:**
 
-![Input Image](images/input_image2.jpg)
+![Input Image](for_readme/input.jpg)
 
 **Output:**
 
 After running the script, you will get pixel art output similar to this:
 
-![Output Image](output/pixel_art_12.png)
+![Output Image](for_readme/output.png)
 
 ## How It Works
 
