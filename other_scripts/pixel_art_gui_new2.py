@@ -33,7 +33,7 @@ def detect_and_crop_face(image):
         return None
 
     (x, y, w, h) = faces[0]
-    padding = int(0.3 * w)
+    padding = int(0.2 * w)
     x, y = max(0, x-padding), max(0, y-padding)
     w, h = w + 2*padding, h + 2*padding
 
@@ -76,12 +76,12 @@ def create_pixel_art(image, square_size=1):
     return pixel_art
 
 # Function to display the processed image in the GUI
-def display_image(image_array, label):
+def display_image(image_array):
     img_pil = Image.fromarray(image_array)
     img_pil = img_pil.resize((200, 200), Image.Resampling.LANCZOS)  # Resize to fit in the GUI
     img_tk = ImageTk.PhotoImage(img_pil)
-    label.config(image=img_tk)
-    label.image = img_tk  # Keep reference to avoid garbage collection
+    output_image_label.config(image=img_tk)
+    output_image_label.image = img_tk  # Keep reference to avoid garbage collection
 
 # Function to save the output image and add a number if file exists
 def save_image(output_path, image_data):
@@ -97,7 +97,6 @@ def save_image(output_path, image_data):
     resized_image = cv2.resize(image_data, (512, 512), interpolation=cv2.INTER_AREA)
     Image.fromarray(resized_image).save(new_output_path, format='PNG')
     print(f"Output saved to {new_output_path}")
-    return new_output_path  # Return the path of the saved image
 
 # Function to process the image and generate pixel art
 def process_image(image_path, output_path, num_colors, pixel_size):
@@ -116,15 +115,11 @@ def process_image(image_path, output_path, num_colors, pixel_size):
         # Step 5: Create pixel art
         pixel_art = create_pixel_art(quantized_face, square_size=1)
 
-        # Step 6: Save the output
-        saved_image_path = save_image(output_path, pixel_art)
+        # Step 6: Display the processed image
+        display_image(pixel_art)
 
-        # Step 7: Load and display the saved image (512x512)
-        saved_image = Image.open(saved_image_path)
-        saved_image_resized = saved_image.resize((200, 200), Image.Resampling.LANCZOS)  # Resize for display
-        img_tk = ImageTk.PhotoImage(saved_image_resized)
-        generated_image_label.config(image=img_tk)
-        generated_image_label.image = img_tk  # Keep reference to avoid garbage collection
+        # Step 7: Save the output
+        save_image(output_path, pixel_art)
     else:
         messagebox.showerror("Error", "No face detected in the image!")
 
@@ -138,8 +133,8 @@ def open_file():
         img = Image.open(file_path)
         img = img.resize((200, 200), Image.Resampling.LANCZOS)  # Use LANCZOS for resizing in newer Pillow versions
         img_tk = ImageTk.PhotoImage(img)
-        selected_image_label.config(image=img_tk)
-        selected_image_label.image = img_tk  # Save reference to avoid garbage collection
+        output_image_label.config(image=img_tk)
+        output_image_label.image = img_tk  # Save reference to avoid garbage collection
         
         # Get the file name and update the button text
         file_name = os.path.basename(file_path)
@@ -168,7 +163,7 @@ def generate_art():
 # Initialize the root window
 root = tk.Tk()
 root.title("PixelArt Generator")
-root.geometry("650x750")
+root.geometry("900x600")
 root.config(bg="#444")
 
 # Title label
@@ -211,25 +206,17 @@ generate_button = tk.Button(left_frame, text="GENERATE", font=("Arial", 14, "bol
 generate_button.pack(pady=20)
 generate_button.config(command=generate_art)
 
-# Right Frame for displaying the images
+# Right Frame for displaying the output image
 right_frame = tk.Frame(frame, bg="#444")
 right_frame.pack(side=tk.LEFT, padx=40)
 
-# Label for selected image
-selected_image_label_title = tk.Label(right_frame, text="Selected Image:", font=("Arial", 14), bg="#444", fg="white")
-selected_image_label_title.pack()
+# Output Label
+output_label = tk.Label(right_frame, text="Output:", font=("Arial", 16, "bold"), bg="#444", fg="white")
+output_label.pack()
 
-# Placeholder for selected image
-selected_image_label = tk.Label(right_frame, bg="#666", width=200, height=200)
-selected_image_label.pack(pady=10)
-
-# Label for generated image
-generated_image_label_title = tk.Label(right_frame, text="Generated Image:", font=("Arial", 14), bg="#444", fg="white")
-generated_image_label_title.pack()
-
-# Placeholder for generated image
-generated_image_label = tk.Label(right_frame, bg="#666", width=200, height=200)
-generated_image_label.pack(pady=10)
+# Placeholder for the output image
+output_image_label = tk.Label(right_frame, bg="#666", width=200, height=200)
+output_image_label.pack(pady=10)
 
 # Footer credits
 footer_label = tk.Label(root, text="by Kaegean", font=("Arial", 14, "bold"), bg="#444", fg="white")

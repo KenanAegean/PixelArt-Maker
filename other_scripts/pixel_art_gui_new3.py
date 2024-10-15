@@ -33,7 +33,7 @@ def detect_and_crop_face(image):
         return None
 
     (x, y, w, h) = faces[0]
-    padding = int(0.3 * w)
+    padding = int(0.2 * w)
     x, y = max(0, x-padding), max(0, y-padding)
     w, h = w + 2*padding, h + 2*padding
 
@@ -168,7 +168,7 @@ def generate_art():
 # Initialize the root window
 root = tk.Tk()
 root.title("PixelArt Generator")
-root.geometry("650x750")
+root.geometry("900x600")
 root.config(bg="#444")
 
 # Title label
